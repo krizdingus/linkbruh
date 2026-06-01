@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# secrets
+.env
+
+# AI-development files — not part of the project output
+kickoff_doc.md
+*.prompt.md
+scratch/
+notes/
+CLAUDE.md
+.claude/
+docs/superpowers/
+
+# logs / os cruft
+npm-debug.log*
+*.log
+.DS_Store
