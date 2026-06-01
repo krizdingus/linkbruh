@@ -11,6 +11,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Default X/Twitter proxy is now `vxtwitter.com`. `fxtwitter.com` was serving
   degraded embeds without video metadata, so videos did not play inline.
 
+### Fixed
+
+- Invite URL now requests the Embed Links permission (`permissions=93184`).
+  Without it Discord will not render the bot's fixed links as embeds, so no
+  video appears regardless of the proxy.
+
 ## [0.1.0] - 2026-06-01
 
 ### Added

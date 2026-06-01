@@ -51,11 +51,12 @@ npm test
 ### Invite the bot
 
 Use the OAuth2 URL below, replacing `CLIENT_ID` with your application ID. The
-`permissions` value grants View Channels, Send Messages, Read Message History,
-and Manage Messages (needed to suppress the original embed):
+`permissions` value grants View Channels, Send Messages, Embed Links (so the
+bot's fixed links render as embeds), Read Message History, and Manage Messages
+(needed to suppress the original embed):
 
 ```
-https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=76800
+https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=93184
 ```
 
 ## Configuration
