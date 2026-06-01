@@ -5,8 +5,12 @@
 // INSTAGRAM_PROXY for the next live InstaFix-class domain. That's the whole fix.
 // ---------------------------------------------------------------------------
 
-// X / Twitter proxy. Fallbacks (manual swap): fixupx.com, vxtwitter.com
-export const X_PROXY = 'fxtwitter.com';
+// X / Twitter proxy. fxtwitter.com is usually the default, but its embed
+// endpoint serves degraded cards (no og:video) when X's guest API tightens up;
+// vxtwitter.com is a separate backend that tends to keep working when it does.
+// fixupx.com shares fxtwitter's backend, so it is NOT an independent fallback.
+// Fallback (manual swap): fxtwitter.com
+export const X_PROXY = 'vxtwitter.com';
 
 // Instagram proxy. Fallback (manual swap): ddinstagram.com
 export const INSTAGRAM_PROXY = 'kkinstagram.com';
