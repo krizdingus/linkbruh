@@ -1,5 +1,6 @@
-// Pure link logic. No Discord objects in here — that's what makes it testable.
-// Entry point is findFixes(text), which returns the list of fixed URLs to post.
+// Pure link detection. No Discord objects, no network — that's what makes it
+// testable. findLinks(text) returns the source links worth fixing; the proxy
+// selection (which needs network) lives in embeds.js.
 
 import { DOMAIN_MAP, POST_PATH_SEGMENTS } from './config.js';
 
@@ -47,34 +48,42 @@ function hasPostSegment(path) {
     .some((seg) => POST_PATH_SEGMENTS.has(seg.toLowerCase()));
 }
 
-// Build the proxied URL: swap the host, keep the path and query. Trailing
-// sentence punctuation (a link at the end of a sentence) is trimmed off.
-function rewrite(host, pathAndQuery) {
-  const proxy = DOMAIN_MAP[host.toLowerCase()];
-  const path = pathAndQuery.replace(/[.,!?;:]+$/, '');
-  return `https://${proxy}${path}`;
+// Trailing sentence punctuation (a link at the end of a sentence) is not part of
+// the URL.
+function trimTrailingPunctuation(path) {
+  return path.replace(/[.,!?;:]+$/, '');
 }
 
-// Find every fixable link in a message and return the rewritten URLs, in order,
-// deduped. Returns [] when there's nothing to fix.
-export function findFixes(text) {
+// Find every fixable source link. Returns [{ host, pathAndQuery }] in order,
+// deduped by host+path. Returns [] when there's nothing to fix.
+export function findLinks(text) {
   if (!text) return [];
 
   const masked = maskIgnoredRegions(text);
-  const fixes = [];
+  const links = [];
   const seen = new Set();
 
   for (const match of masked.matchAll(LINK_RE)) {
-    const host = match[1];
-    const pathAndQuery = match[2] || '';
+    const host = match[1].toLowerCase();
+    const pathAndQuery = trimTrailingPunctuation(match[2] || '');
 
     if (!hasPostSegment(pathAndQuery)) continue;
 
-    const fixed = rewrite(host, pathAndQuery);
-    if (seen.has(fixed)) continue;
-    seen.add(fixed);
-    fixes.push(fixed);
+    const key = host + pathAndQuery;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    links.push({ host, pathAndQuery });
   }
 
-  return fixes;
+  return links;
+}
+
+// The candidate proxy hosts for a source host, in priority order.
+export function proxiesFor(host) {
+  return DOMAIN_MAP[host] || [];
+}
+
+// Build a proxy URL: swap in the proxy host, keep the path and query.
+export function buildProxyUrl(proxyHost, pathAndQuery) {
+  return `https://${proxyHost}${pathAndQuery}`;
 }

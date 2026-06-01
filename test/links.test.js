@@ -1,117 +1,129 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { findFixes } from '../src/links.js';
+import { findLinks, proxiesFor, buildProxyUrl } from '../src/links.js';
 
-test('rewrites an x.com status link to the proxy', () => {
-  assert.deepEqual(
-    findFixes('look https://x.com/user/status/123'),
-    ['https://vxtwitter.com/user/status/123'],
-  );
+test('detects an x.com status link', () => {
+  assert.deepEqual(findLinks('look https://x.com/user/status/123'), [
+    { host: 'x.com', pathAndQuery: '/user/status/123' },
+  ]);
 });
 
-test('rewrites twitter.com to the same x proxy', () => {
-  assert.deepEqual(
-    findFixes('https://twitter.com/user/status/123'),
-    ['https://vxtwitter.com/user/status/123'],
-  );
+test('detects twitter.com', () => {
+  assert.deepEqual(findLinks('https://twitter.com/user/status/123'), [
+    { host: 'twitter.com', pathAndQuery: '/user/status/123' },
+  ]);
 });
 
-test('rewrites instagram reel/p/tv links', () => {
-  assert.deepEqual(findFixes('https://instagram.com/reel/ABC'), [
-    'https://kkinstagram.com/reel/ABC',
+test('detects instagram reel/p/tv links', () => {
+  assert.deepEqual(findLinks('https://instagram.com/reel/ABC'), [
+    { host: 'instagram.com', pathAndQuery: '/reel/ABC' },
   ]);
-  assert.deepEqual(findFixes('https://instagram.com/p/ABC'), [
-    'https://kkinstagram.com/p/ABC',
+  assert.deepEqual(findLinks('https://instagram.com/p/ABC'), [
+    { host: 'instagram.com', pathAndQuery: '/p/ABC' },
   ]);
-  assert.deepEqual(findFixes('https://instagram.com/tv/ABC'), [
-    'https://kkinstagram.com/tv/ABC',
+  assert.deepEqual(findLinks('https://instagram.com/tv/ABC'), [
+    { host: 'instagram.com', pathAndQuery: '/tv/ABC' },
   ]);
 });
 
 test('handles www. / m. / mobile. subdomains', () => {
-  assert.deepEqual(findFixes('https://www.x.com/u/status/1'), [
-    'https://vxtwitter.com/u/status/1',
+  assert.deepEqual(findLinks('https://www.x.com/u/status/1'), [
+    { host: 'x.com', pathAndQuery: '/u/status/1' },
   ]);
-  assert.deepEqual(findFixes('https://m.instagram.com/reel/X'), [
-    'https://kkinstagram.com/reel/X',
+  assert.deepEqual(findLinks('https://m.instagram.com/reel/X'), [
+    { host: 'instagram.com', pathAndQuery: '/reel/X' },
   ]);
 });
 
 test('preserves query strings and trailing params', () => {
-  assert.deepEqual(findFixes('https://x.com/u/status/1?s=20&t=abc'), [
-    'https://vxtwitter.com/u/status/1?s=20&t=abc',
+  assert.deepEqual(findLinks('https://x.com/u/status/1?s=20&t=abc'), [
+    { host: 'x.com', pathAndQuery: '/u/status/1?s=20&t=abc' },
   ]);
 });
 
 test('works without a scheme', () => {
-  assert.deepEqual(findFixes('x.com/u/status/1'), [
-    'https://vxtwitter.com/u/status/1',
+  assert.deepEqual(findLinks('x.com/u/status/1'), [
+    { host: 'x.com', pathAndQuery: '/u/status/1' },
   ]);
 });
 
 test('skips profile / root links with no post segment', () => {
-  assert.deepEqual(findFixes('https://x.com/someuser'), []);
-  assert.deepEqual(findFixes('https://instagram.com/someuser'), []);
-  assert.deepEqual(findFixes('https://x.com'), []);
+  assert.deepEqual(findLinks('https://x.com/someuser'), []);
+  assert.deepEqual(findLinks('https://instagram.com/someuser'), []);
+  assert.deepEqual(findLinks('https://x.com'), []);
 });
 
-test('does not re-fix links already on a proxy domain', () => {
-  assert.deepEqual(findFixes('https://vxtwitter.com/u/status/1'), []);
-  assert.deepEqual(findFixes('https://kkinstagram.com/reel/X'), []);
+test('does not detect links already on a proxy domain', () => {
+  assert.deepEqual(findLinks('https://vxtwitter.com/u/status/1'), []);
+  assert.deepEqual(findLinks('https://fxtwitter.com/u/status/1'), []);
+  assert.deepEqual(findLinks('https://kkinstagram.com/reel/X'), []);
 });
 
 test('handles multiple links in one message', () => {
   assert.deepEqual(
-    findFixes('a https://x.com/u/status/1 b https://instagram.com/reel/Y'),
-    ['https://vxtwitter.com/u/status/1', 'https://kkinstagram.com/reel/Y'],
+    findLinks('a https://x.com/u/status/1 b https://instagram.com/reel/Y'),
+    [
+      { host: 'x.com', pathAndQuery: '/u/status/1' },
+      { host: 'instagram.com', pathAndQuery: '/reel/Y' },
+    ],
   );
 });
 
 test('dedupes identical links', () => {
-  assert.deepEqual(
-    findFixes('https://x.com/u/status/1 https://x.com/u/status/1'),
-    ['https://vxtwitter.com/u/status/1'],
-  );
-});
-
-test('skips links inside spoiler tags', () => {
-  assert.deepEqual(findFixes('||https://x.com/u/status/1||'), []);
-});
-
-test('skips links inside inline code and code blocks', () => {
-  assert.deepEqual(findFixes('`https://x.com/u/status/1`'), []);
-  assert.deepEqual(
-    findFixes('```\nhttps://x.com/u/status/1\n```'),
-    [],
-  );
-});
-
-test('skips angle-bracket-wrapped (embed-suppressed) links', () => {
-  assert.deepEqual(findFixes('<https://x.com/u/status/1>'), []);
-});
-
-test('still fixes a real link alongside an ignored one', () => {
-  assert.deepEqual(
-    findFixes('||https://x.com/u/status/1|| https://x.com/u/status/2'),
-    ['https://vxtwitter.com/u/status/2'],
-  );
-});
-
-test('trims trailing sentence punctuation off the link', () => {
-  assert.deepEqual(findFixes('watch this: https://x.com/u/status/1.'), [
-    'https://vxtwitter.com/u/status/1',
+  assert.deepEqual(findLinks('https://x.com/u/status/1 https://x.com/u/status/1'), [
+    { host: 'x.com', pathAndQuery: '/u/status/1' },
   ]);
 });
 
-test('still matches a link right after punctuation', () => {
-  assert.deepEqual(findFixes('(https://x.com/u/status/1)'), [
-    'https://vxtwitter.com/u/status/1',
+test('skips links inside spoiler tags', () => {
+  assert.deepEqual(findLinks('||https://x.com/u/status/1||'), []);
+});
+
+test('skips links inside inline code and code blocks', () => {
+  assert.deepEqual(findLinks('`https://x.com/u/status/1`'), []);
+  assert.deepEqual(findLinks('```\nhttps://x.com/u/status/1\n```'), []);
+});
+
+test('skips angle-bracket-wrapped (embed-suppressed) links', () => {
+  assert.deepEqual(findLinks('<https://x.com/u/status/1>'), []);
+});
+
+test('still detects a real link alongside an ignored one', () => {
+  assert.deepEqual(
+    findLinks('||https://x.com/u/status/1|| https://x.com/u/status/2'),
+    [{ host: 'x.com', pathAndQuery: '/u/status/2' }],
+  );
+});
+
+test('trims trailing sentence punctuation off the path', () => {
+  assert.deepEqual(findLinks('watch this: https://x.com/u/status/1.'), [
+    { host: 'x.com', pathAndQuery: '/u/status/1' },
+  ]);
+});
+
+test('still detects a link right after punctuation', () => {
+  assert.deepEqual(findLinks('(https://x.com/u/status/1)'), [
+    { host: 'x.com', pathAndQuery: '/u/status/1' },
   ]);
 });
 
 test('returns [] for empty or linkless text', () => {
-  assert.deepEqual(findFixes(''), []);
-  assert.deepEqual(findFixes('just some words'), []);
-  assert.deepEqual(findFixes(null), []);
+  assert.deepEqual(findLinks(''), []);
+  assert.deepEqual(findLinks('just some words'), []);
+  assert.deepEqual(findLinks(null), []);
+});
+
+test('proxiesFor returns the candidate list for a source host', () => {
+  assert.equal(proxiesFor('x.com')[0], 'vxtwitter.com');
+  assert.equal(proxiesFor('twitter.com')[0], 'vxtwitter.com');
+  assert.equal(proxiesFor('instagram.com')[0], 'kkinstagram.com');
+  assert.deepEqual(proxiesFor('unknown.com'), []);
+});
+
+test('buildProxyUrl swaps the host and keeps the path', () => {
+  assert.equal(
+    buildProxyUrl('vxtwitter.com', '/u/status/1?s=20'),
+    'https://vxtwitter.com/u/status/1?s=20',
+  );
 });

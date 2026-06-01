@@ -1,23 +1,31 @@
-// Discord-side glue between events and the pure logic. Kept thin: decide whether
-// to act, then call into links.js / post.js.
+// Discord-side glue between events and the logic. Kept thin: decide whether to
+// act, resolve each link to a working proxy, post, suppress the original.
 
-import { findFixes } from './links.js';
+import { findLinks } from './links.js';
+import { resolveEmbedUrl } from './embeds.js';
 import { postFix } from './post.js';
 
 // The react-to-delete emoji. Unicode cross mark (U+274C).
 const DELETE_EMOJI = '❌';
 
-// New message: if it carries fixable links, reply with the fixes and suppress
-// the original's broken embed. Ignores DMs, bots, and itself.
+// New message: if it carries fixable links, reply with working proxy links and
+// suppress the original's broken embed. Ignores DMs, bots, and itself.
 export async function onMessage(message) {
   if (!message.guild) return;
   if (message.author.bot) return;
 
-  const fixes = findFixes(message.content);
-  if (fixes.length === 0) return;
+  const links = findLinks(message.content);
+  if (links.length === 0) return;
+
+  const urls = [];
+  for (const link of links) {
+    const url = await resolveEmbedUrl(link);
+    if (url) urls.push(url);
+  }
+  if (urls.length === 0) return;
 
   try {
-    await postFix(message, fixes);
+    await postFix(message, urls);
   } catch (err) {
     console.error('could not post fix:', err.message);
     return;

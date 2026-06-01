@@ -61,9 +61,11 @@ https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=9
 
 ## Configuration
 
-All proxy domains live at the top of `src/config.js`. Instagram proxy domains
-rotate often; when Instagram embeds stop working, change `INSTAGRAM_PROXY` to a
-current InstaFix-class domain.
+All proxy domains live at the top of `src/config.js`, as priority lists per
+service (`X_PROXIES`, `INSTAGRAM_PROXIES`). Before posting, the bot probes the
+candidates and uses the first that actually serves a video embed, so a degraded
+domain is skipped automatically. Instagram domains rotate often; when embeds
+stop working, move a current InstaFix-class domain to the front of the list.
 
 | Env var         | Required | Purpose                                    |
 | --------------- | -------- | ------------------------------------------ |

@@ -8,8 +8,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Default X/Twitter proxy is now `vxtwitter.com`. `fxtwitter.com` was serving
-  degraded embeds without video metadata, so videos did not play inline.
+- Proxy domains are now configured as priority lists per service
+  (`X_PROXIES`, `INSTAGRAM_PROXIES`) instead of single values.
+
+### Added
+
+- Self-healing proxy selection. Before posting, the bot probes the candidate
+  proxy domains for a link and posts the first one that actually serves a video
+  embed, falling back to the primary if none verify. A silently-degraded proxy
+  (e.g. `fxtwitter.com` returning a card with no video metadata) no longer
+  breaks the fix.
 
 ### Fixed
 
