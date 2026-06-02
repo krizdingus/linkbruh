@@ -18,11 +18,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   embed, falling back to the primary if none verify. A silently-degraded proxy
   (e.g. `fxtwitter.com` returning a card with no video metadata) no longer
   breaks the fix.
-- Instagram video fallback. Instagram proxies are unreliable because Instagram
-  login-walls Discord's scraper. For Instagram links, when a proxy exposes the
-  video the bot downloads it and re-uploads it as a native Discord attachment
-  (within a size limit), which plays inline regardless of Discord's scrape. X
-  links are unaffected and stay link-only.
+- Instagram video download. Instagram proxies are unreliable because Instagram
+  login-walls Discord's scraper. For Instagram links the bot downloads the video
+  (trying each proxy: kkinstagram redirects to the file, vxinstagram serves an
+  og:video page — both are handled) and re-uploads it as a native Discord
+  attachment within a size limit, so it plays inline regardless of Discord's
+  scrape. Shared `/reels/` links are normalized to the `/reel/` form the proxies
+  expect, and an HTML "login wall" response is never mistaken for a video.
+  Reels that no proxy can fetch fall back to posting the link. X links are
+  unaffected and stay link-only.
 
 ### Fixed
 

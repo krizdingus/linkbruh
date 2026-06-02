@@ -1,7 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { findLinks, proxiesFor, buildProxyUrl } from '../src/links.js';
+import {
+  findLinks,
+  proxiesFor,
+  buildProxyUrl,
+  normalizeInstagramPath,
+} from '../src/links.js';
 
 test('detects an x.com status link', () => {
   assert.deepEqual(findLinks('look https://x.com/user/status/123'), [
@@ -126,4 +131,15 @@ test('buildProxyUrl swaps the host and keeps the path', () => {
     buildProxyUrl('vxtwitter.com', '/u/status/1?s=20'),
     'https://vxtwitter.com/u/status/1?s=20',
   );
+});
+
+test('normalizeInstagramPath rewrites /reels/ to /reel/', () => {
+  assert.equal(normalizeInstagramPath('/reels/ABC/'), '/reel/ABC/');
+  assert.equal(normalizeInstagramPath('/reels/ABC/?x=1'), '/reel/ABC/?x=1');
+});
+
+test('normalizeInstagramPath leaves /reel/, /p/, /tv/ alone', () => {
+  assert.equal(normalizeInstagramPath('/reel/ABC/'), '/reel/ABC/');
+  assert.equal(normalizeInstagramPath('/p/ABC/'), '/p/ABC/');
+  assert.equal(normalizeInstagramPath('/tv/ABC/'), '/tv/ABC/');
 });

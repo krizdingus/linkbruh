@@ -12,8 +12,10 @@
 // FxEmbed backend and rotate in when X's guest API is healthy.
 export const X_PROXIES = ['vxtwitter.com', 'fxtwitter.com', 'fixupx.com'];
 
-// Instagram (InstaFix-class). Front entry is the current live one.
-export const INSTAGRAM_PROXIES = ['kkinstagram.com', 'ddinstagram.com'];
+// Instagram (InstaFix-class). Front entry is the current live one. kkinstagram
+// redirects straight to the video file; vxinstagram serves an og:video page —
+// the downloader handles both. (ddinstagram is currently dead.)
+export const INSTAGRAM_PROXIES = ['kkinstagram.com', 'vxinstagram.com'];
 
 // Source host -> candidate proxy hosts. The scanner only matches these source
 // hosts, so a link already on a proxy domain is never re-fixed.

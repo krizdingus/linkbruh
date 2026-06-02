@@ -87,3 +87,9 @@ export function proxiesFor(host) {
 export function buildProxyUrl(proxyHost, pathAndQuery) {
   return `https://${proxyHost}${pathAndQuery}`;
 }
+
+// Instagram uses /reels/ (plural) in shared links, but the InstaFix-class
+// proxies expect /reel/ (singular) — the plural form 405s. Normalize it.
+export function normalizeInstagramPath(pathAndQuery) {
+  return pathAndQuery.replace(/^\/reels\//i, '/reel/');
+}
