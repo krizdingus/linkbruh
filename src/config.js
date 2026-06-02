@@ -40,3 +40,17 @@ export const SCRAPER_UA =
 // how big a file it will pull. 25 MB is the safe ceiling for a non-boosted
 // server; bigger than this falls back to posting the link.
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+
+// Webhook display name used when reposting a fix as the original poster. The
+// per-message username/avatar override this; this is only the webhook's own name.
+export const WEBHOOK_NAME = 'linkbruh';
+
+// Discord caps a single message at 10 attachments — the ceiling for a carousel.
+export const MAX_ATTACHMENTS = 10;
+
+// When an Instagram post can't be fixed (private / age-restricted / removed /
+// too big), the bot leaves the original alone and posts this note, which then
+// deletes itself after NOTE_DELETE_MS. NEUTRAL PLACEHOLDER — rewrite in your
+// own voice; this is a user-facing string and is intentionally not styled here.
+export const FALLBACK_NOTE = "couldn't fix this one.";
+export const NOTE_DELETE_MS = 12000;
