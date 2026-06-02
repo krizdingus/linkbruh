@@ -73,10 +73,14 @@ async function replyWithFixes(message, successes) {
     console.error('reply fix failed:', err.message);
     return;
   }
-  try {
-    await message.suppressEmbeds(true);
-  } catch (err) {
-    console.error('could not suppress original embed:', err.message);
+  // Only X/Twitter links produce a broken embed worth suppressing; Instagram
+  // serves nothing to scrapers, so there's nothing there to suppress.
+  if (successes.some((s) => s.kind === 'x')) {
+    try {
+      await message.suppressEmbeds(true);
+    } catch (err) {
+      console.error('could not suppress original embed:', err.message);
+    }
   }
 }
 
@@ -124,9 +128,16 @@ export async function onMessage(message) {
 
     try {
       const posted = await postAsUser(message, { content, files });
-      // Repost succeeded — safe to delete the original now.
-      await message.delete();
+      // Repost succeeded — register it for ❌-delete before touching the
+      // original, so the fix is always trackable even if the delete fails.
       if (posted?.id) fixAuthors.set(posted.id, message.author.id);
+      // Delete the original. If it's already gone (a mod or another bot beat us
+      // to it), the repost still stands — don't fall through and double-post.
+      try {
+        await message.delete();
+      } catch (err) {
+        console.error('could not delete original after repost:', err.message);
+      }
       return;
     } catch (err) {
       console.error('impersonation failed, falling back to reply:', err.message);
