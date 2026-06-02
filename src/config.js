@@ -32,3 +32,9 @@ export const POST_PATH_SEGMENTS = new Set(['status', 'p', 'reel', 'reels', 'tv']
 // this when probing a proxy to confirm it has a video embed.
 export const SCRAPER_UA =
   'Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)';
+
+// Instagram fallback only: when a proxy has the video but Discord can't be
+// trusted to embed it, the bot downloads the file and re-uploads it. This caps
+// how big a file it will pull. 25 MB is the safe ceiling for a non-boosted
+// server; bigger than this falls back to posting the link.
+export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
