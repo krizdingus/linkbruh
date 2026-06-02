@@ -86,5 +86,13 @@ stop working, move a current InstaFix-class domain to the front of the list.
 ## Usage
 
 Post an X/Twitter or Instagram link in a channel the bot can see. It replies
-with a fixed link and hides the original broken embed. To remove the bot's
-reply, the original poster reacts to it with ❌.
+with a fixed link (for X/Twitter) or the uploaded video (for Instagram) and
+hides the original broken embed. To remove the bot's reply, the original poster
+reacts to it with ❌.
+
+## Limitations
+
+Age-restricted, private, or removed Instagram reels cannot be fixed. Instagram
+serves their video only to a logged-in, age-verified session, so there is no
+public video for the bot (or any logged-out tool) to fetch. For those links the
+bot stays quiet. Public Instagram reels and X/Twitter videos are unaffected.

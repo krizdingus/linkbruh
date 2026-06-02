@@ -6,6 +6,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-02
+
 ### Changed
 
 - Proxy domains are now configured as priority lists per service
@@ -48,5 +50,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - All domain mappings live in a single config file for fast editing.
 - `node:test` suite covering the link-detection and rewrite logic.
 
-[Unreleased]: https://example.com/linkbruh/compare/v0.1.0...HEAD
-[0.1.0]: https://example.com/linkbruh/releases/tag/v0.1.0
+[Unreleased]: https://github.com/krizdingus/linkbruh/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/krizdingus/linkbruh/compare/v0.1.0...v1.0.0
+[0.1.0]: https://github.com/krizdingus/linkbruh/releases/tag/v0.1.0
