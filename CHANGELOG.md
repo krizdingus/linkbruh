@@ -6,6 +6,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-02
+
+### Added
+
+- Webhook impersonation mode. When the bot has Manage Webhooks and Manage
+  Messages, it deletes the original message and reposts the fix via a channel
+  webhook under the original poster's name, instead of replying.
+- Falls back to reply mode when the bot lacks Manage Webhooks or Manage
+  Messages, or when only some links in a message could be fixed.
+- Instagram support extended to photos and carousels, not just video/reels.
+- When an Instagram post can't be fixed (private, age-restricted, removed, or
+  too large), the original is left intact and a short self-deleting note is
+  posted.
+- React with ❌ to delete a reposted fix (original author only).
+
+### Changed
+
+- X/Twitter links are now acted on only when the post is a video. Non-video
+  tweets are left alone.
+
 ## [1.0.0] - 2026-06-02
 
 ### Changed
@@ -50,6 +70,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - All domain mappings live in a single config file for fast editing.
 - `node:test` suite covering the link-detection and rewrite logic.
 
-[Unreleased]: https://github.com/krizdingus/linkbruh/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/krizdingus/linkbruh/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/krizdingus/linkbruh/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/krizdingus/linkbruh/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/krizdingus/linkbruh/releases/tag/v0.1.0

@@ -1,8 +1,8 @@
 # linkbruh
 
 A Discord bot that rewrites X/Twitter and Instagram post links to embed-proxy
-domains so videos and images play inline in Discord. It replies with the fixed
-link and suppresses the original broken embed.
+domains so videos and images play inline in Discord. It reposts the fixed link
+via a channel webhook under the original poster's name and removes the original.
 
 <!-- Placeholder copy. Rewrite this README in your own voice. -->
 
@@ -52,12 +52,16 @@ npm test
 
 Use the OAuth2 URL below, replacing `CLIENT_ID` with your application ID. The
 `permissions` value grants View Channels, Send Messages, Embed Links (so the
-bot's fixed links render as embeds), Read Message History, and Manage Messages
-(needed to suppress the original embed):
+bot's fixed links render as embeds), Read Message History, Manage Messages
+(needed to delete the original message and suppress broken embeds), and Manage
+Webhooks (needed to repost the fix as the original poster):
 
 ```
-https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=93184
+https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=93216
 ```
+
+If the bot was previously invited without Manage Webhooks, re-invite it using
+the URL above to grant the new permission.
 
 ## Configuration
 
@@ -85,14 +89,16 @@ stop working, move a current InstaFix-class domain to the front of the list.
 
 ## Usage
 
-Post an X/Twitter or Instagram link in a channel the bot can see. It replies
-with a fixed link (for X/Twitter) or the uploaded video (for Instagram) and
-hides the original broken embed. To remove the bot's reply, the original poster
+Post an X/Twitter or Instagram link in a channel the bot can see. The bot
+deletes the original message and reposts it via a channel webhook under the
+original poster's name with the fixed link (for X/Twitter video links) or the
+uploaded video (for Instagram). To remove the reposted fix, the original poster
 reacts to it with ❌.
 
 ## Limitations
 
-Age-restricted, private, or removed Instagram reels cannot be fixed. Instagram
+Age-restricted, private, or removed Instagram posts cannot be fixed. Instagram
 serves their video only to a logged-in, age-verified session, so there is no
-public video for the bot (or any logged-out tool) to fetch. For those links the
-bot stays quiet. Public Instagram reels and X/Twitter videos are unaffected.
+public video for the bot (or any logged-out tool) to fetch. When a post can't
+be fixed the original is left intact and the bot posts a short self-deleting
+note. Public Instagram posts and X/Twitter videos are unaffected.

@@ -1,6 +1,6 @@
 {
   "name": "linkbruh",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Discord bot that rewrites X/Twitter and Instagram links to embed-proxy domains so they play inline.",
   "type": "module",
   "private": true,
