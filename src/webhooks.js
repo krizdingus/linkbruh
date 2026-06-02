@@ -19,9 +19,11 @@ function targetFor(channel) {
   return { parent: channel, threadId: undefined };
 }
 
-async function getWebhook(channel) {
+async function getWebhook(channel, forceNew = false) {
   const { parent, threadId } = targetFor(channel);
   if (!parent) throw new Error('no parent channel for webhook');
+
+  if (forceNew) cache.delete(parent.id);
 
   const cached = cache.get(parent.id);
   if (cached) return { webhook: cached, threadId };
@@ -38,17 +40,25 @@ async function getWebhook(channel) {
 // sent webhook Message. Throws if the bot lacks Manage Webhooks — callers fall
 // back to reply mode.
 export async function postAsUser(message, { content, files = [] } = {}) {
-  const { webhook, threadId } = await getWebhook(message.channel);
-
   const username = sanitizeWebhookName(message.member?.displayName ?? message.author.username);
   const avatarURL = (message.member ?? message.author).displayAvatarURL({ extension: 'png' });
 
   const payload = { username, avatarURL, allowedMentions: { parse: [] } };
-  if (threadId) payload.threadId = threadId;
   if (content) payload.content = content;
   if (files.length) {
     payload.files = files.map((f) => new AttachmentBuilder(f.buffer, { name: f.name }));
   }
 
-  return webhook.send(payload);
+  const send = async (forceNew) => {
+    const { webhook, threadId } = await getWebhook(message.channel, forceNew);
+    return webhook.send(threadId ? { ...payload, threadId } : payload);
+  };
+
+  try {
+    return await send(false);
+  } catch (err) {
+    // Cached webhook was deleted server-side — drop it, recreate, retry once.
+    if (err?.code === 10015) return send(true);
+    throw err;
+  }
 }
