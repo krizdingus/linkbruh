@@ -54,28 +54,44 @@ function trimTrailingPunctuation(path) {
   return path.replace(/[.,!?;:]+$/, '');
 }
 
-// Find every fixable source link. Returns [{ host, pathAndQuery }] in order,
-// deduped by host+path. Returns [] when there's nothing to fix.
-export function findLinks(text) {
+// Find every fixable source link with its exact matched text. Returns
+// [{ host, pathAndQuery, raw, index }] in order, deduped by host+path. `raw` is
+// the matched URL with trailing sentence punctuation removed (so it can be
+// stripped out of a reposted caption verbatim); `index` is its offset in `text`.
+export function findLinkMatches(text) {
   if (!text) return [];
 
   const masked = maskIgnoredRegions(text);
-  const links = [];
+  const matches = [];
   const seen = new Set();
 
   for (const match of masked.matchAll(LINK_RE)) {
     const host = match[1].toLowerCase();
-    const pathAndQuery = trimTrailingPunctuation(match[2] || '');
+    const rawPath = match[2] || '';
+    const pathAndQuery = trimTrailingPunctuation(rawPath);
 
     if (!hasPostSegment(pathAndQuery)) continue;
 
     const key = host + pathAndQuery;
     if (seen.has(key)) continue;
     seen.add(key);
-    links.push({ host, pathAndQuery });
+
+    // Trim the same trailing punctuation off the full match that we trimmed off
+    // the path. maskIgnoredRegions only blanks ignored spans (with same-length
+    // spaces), so offsets and the raw text of real links match the original.
+    const trimmed = rawPath.length - pathAndQuery.length;
+    const raw = match[0].slice(0, match[0].length - trimmed);
+
+    matches.push({ host, pathAndQuery, raw, index: match.index });
   }
 
-  return links;
+  return matches;
+}
+
+// Source links worth fixing, as { host, pathAndQuery }. Thin view over
+// findLinkMatches for callers that don't need the raw text.
+export function findLinks(text) {
+  return findLinkMatches(text).map(({ host, pathAndQuery }) => ({ host, pathAndQuery }));
 }
 
 // The candidate proxy hosts for a source host, in priority order.

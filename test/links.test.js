@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   findLinks,
+  findLinkMatches,
   proxiesFor,
   buildProxyUrl,
   normalizeInstagramPath,
@@ -142,4 +143,28 @@ test('normalizeInstagramPath leaves /reel/, /p/, /tv/ alone', () => {
   assert.equal(normalizeInstagramPath('/reel/ABC/'), '/reel/ABC/');
   assert.equal(normalizeInstagramPath('/p/ABC/'), '/p/ABC/');
   assert.equal(normalizeInstagramPath('/tv/ABC/'), '/tv/ABC/');
+});
+
+test('findLinkMatches returns raw matched text and index', () => {
+  const text = 'look https://x.com/u/status/123 ok';
+  assert.deepEqual(findLinkMatches(text), [
+    { host: 'x.com', pathAndQuery: '/u/status/123', raw: 'https://x.com/u/status/123', index: 5 },
+  ]);
+});
+
+test('findLinkMatches raw excludes trailing sentence punctuation', () => {
+  assert.deepEqual(findLinkMatches('watch https://x.com/u/status/1.'), [
+    { host: 'x.com', pathAndQuery: '/u/status/1', raw: 'https://x.com/u/status/1', index: 6 },
+  ]);
+});
+
+test('findLinkMatches keeps the www. subdomain in raw', () => {
+  assert.deepEqual(findLinkMatches('https://www.instagram.com/reel/X'), [
+    {
+      host: 'instagram.com',
+      pathAndQuery: '/reel/X',
+      raw: 'https://www.instagram.com/reel/X',
+      index: 0,
+    },
+  ]);
 });
