@@ -57,7 +57,7 @@ bot's fixed links render as embeds), Read Message History, Manage Messages
 Webhooks (needed to repost the fix as the original poster):
 
 ```
-https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=93216
+https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot&permissions=536964096
 ```
 
 If the bot was previously invited without Manage Webhooks, re-invite it using
