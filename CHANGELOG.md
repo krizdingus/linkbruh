@@ -25,8 +25,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   attachment within a size limit, so it plays inline regardless of Discord's
   scrape. Shared `/reels/` links are normalized to the `/reel/` form the proxies
   expect, and an HTML "login wall" response is never mistaken for a video.
-  Reels that no proxy can fetch fall back to posting the link. X links are
-  unaffected and stay link-only.
+  Reels that no proxy can fetch (private / age-restricted / removed) can't be
+  fixed logged-out, so the bot stays quiet rather than posting a dead link. X
+  links are unaffected and stay link-only.
 
 ### Fixed
 

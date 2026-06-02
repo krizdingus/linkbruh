@@ -21,6 +21,10 @@ async function resolveFix(link) {
     const path = normalizeInstagramPath(link.pathAndQuery);
     const candidates = proxiesFor(link.host).map((proxy) => buildProxyUrl(proxy, path));
     const file = await fetchInstagramVideo(candidates);
+    // No video means no proxy could fetch it (private / age-restricted / removed)
+    // — nothing can fix that logged-out, so stay quiet instead of posting a dead
+    // link.
+    if (!file) return { proxyUrl: null, file: null };
     return { proxyUrl: candidates[0] ?? null, file };
   }
 
