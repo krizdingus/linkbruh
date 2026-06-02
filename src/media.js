@@ -56,45 +56,44 @@ async function downloadDirect(url, fallbackName) {
 async function fetchFromCandidate(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
-  let res;
   try {
-    res = await fetch(url, { headers: { 'User-Agent': SCRAPER_UA }, signal: controller.signal });
+    const res = await fetch(url, { headers: { 'User-Agent': SCRAPER_UA }, signal: controller.signal });
+    if (!res.ok) return null;
+
+    const type = (res.headers.get('content-type') || '').toLowerCase();
+
+    // The proxy IS the file (direct redirect to the CDN).
+    if (type.startsWith('video/') || type.startsWith('image/')) {
+      if (!withinLimit(Number(res.headers.get('content-length')))) return null;
+      const buffer = Buffer.from(await res.arrayBuffer());
+      if (buffer.byteLength > MAX_UPLOAD_BYTES) return null;
+      const fallback = type.startsWith('video/') ? 'video.mp4' : 'image.jpg';
+      return { files: [{ buffer, name: filenameFor(res.url || url, fallback) }] };
+    }
+
+    if (!type.includes('text/html')) return null;
+    const html = await res.text();
+
+    const videoUrl = parseVideoUrl(html);
+    if (videoUrl) {
+      const file = await downloadDirect(videoUrl, 'video.mp4');
+      return file ? { files: [file] } : null;
+    }
+
+    const imageUrls = parseImageUrls(html).slice(0, MAX_ATTACHMENTS);
+    if (imageUrls.length) {
+      const files = [];
+      for (const imageUrl of imageUrls) {
+        const file = await downloadDirect(imageUrl, 'image.jpg');
+        if (file) files.push(file);
+      }
+      if (files.length) return { files };
+    }
+
+    return null;
   } finally {
     clearTimeout(timer);
   }
-  if (!res.ok) return null;
-
-  const type = (res.headers.get('content-type') || '').toLowerCase();
-
-  // The proxy IS the file (direct redirect to the CDN).
-  if (type.startsWith('video/') || type.startsWith('image/')) {
-    if (!withinLimit(Number(res.headers.get('content-length')))) return null;
-    const buffer = Buffer.from(await res.arrayBuffer());
-    if (buffer.byteLength > MAX_UPLOAD_BYTES) return null;
-    const fallback = type.startsWith('video/') ? 'video.mp4' : 'image.jpg';
-    return { files: [{ buffer, name: filenameFor(res.url || url, fallback) }] };
-  }
-
-  if (!type.includes('text/html')) return null;
-  const html = await res.text();
-
-  const videoUrl = parseVideoUrl(html);
-  if (videoUrl) {
-    const file = await downloadDirect(videoUrl, 'video.mp4');
-    return file ? { files: [file] } : null;
-  }
-
-  const imageUrls = parseImageUrls(html).slice(0, MAX_ATTACHMENTS);
-  if (imageUrls.length) {
-    const files = [];
-    for (const imageUrl of imageUrls) {
-      const file = await downloadDirect(imageUrl, 'image.jpg');
-      if (file) files.push(file);
-    }
-    if (files.length) return { files };
-  }
-
-  return null;
 }
 
 // Try each candidate proxy URL in turn; return the first that yields media.
