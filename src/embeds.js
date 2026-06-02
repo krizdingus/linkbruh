@@ -45,6 +45,30 @@ export function hasVideoEmbed(html) {
   return parseVideoUrl(html) !== null;
 }
 
+// Image meta tags carrying a photo URL. Carousel posts emit one og:image per
+// frame, so we collect them all (deduped, in document order) rather than
+// stopping at the first.
+const IMAGE_META_PROPS = ['og:image', 'twitter:image'];
+
+// Pull every photo URL out of a proxy embed page's HTML. Returns [] for a
+// video-only post or a login-walled / degraded response.
+export function parseImageUrls(html) {
+  if (!html) return [];
+  const urls = [];
+  const seen = new Set();
+  for (const tag of html.match(/<meta[^>]+>/gi) || []) {
+    const prop = tag.match(/(?:property|name)=["']([^"']+)["']/i)?.[1]?.toLowerCase();
+    if (!prop || !IMAGE_META_PROPS.includes(prop)) continue;
+    const content = tag.match(/content=["']([^"']+)["']/i)?.[1];
+    if (!content) continue;
+    const url = decodeEntities(content);
+    if (seen.has(url)) continue;
+    seen.add(url);
+    urls.push(url);
+  }
+  return urls;
+}
+
 async function probe(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
