@@ -168,3 +168,21 @@ test('findLinkMatches keeps the www. subdomain in raw', () => {
     },
   ]);
 });
+
+test('findLinkMatches index is correct when a masked region precedes the link', () => {
+  const text = '||spoiler|| https://x.com/u/status/99';
+  assert.deepEqual(findLinkMatches(text), [
+    { host: 'x.com', pathAndQuery: '/u/status/99', raw: 'https://x.com/u/status/99', index: 12 },
+  ]);
+});
+
+test('findLinkMatches raw includes the full query string', () => {
+  assert.deepEqual(findLinkMatches('https://x.com/u/status/1?s=20&t=abc'), [
+    {
+      host: 'x.com',
+      pathAndQuery: '/u/status/1?s=20&t=abc',
+      raw: 'https://x.com/u/status/1?s=20&t=abc',
+      index: 0,
+    },
+  ]);
+});

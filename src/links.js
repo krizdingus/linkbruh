@@ -77,10 +77,11 @@ export function findLinkMatches(text) {
     seen.add(key);
 
     // Trim the same trailing punctuation off the full match that we trimmed off
-    // the path. maskIgnoredRegions only blanks ignored spans (with same-length
-    // spaces), so offsets and the raw text of real links match the original.
+    // the path, then slice raw from the original text by offset+length so it is
+    // provably the exact substring of `text` regardless of what masking did.
     const trimmed = rawPath.length - pathAndQuery.length;
-    const raw = match[0].slice(0, match[0].length - trimmed);
+    const rawLen = match[0].length - trimmed;
+    const raw = text.slice(match.index, match.index + rawLen);
 
     matches.push({ host, pathAndQuery, raw, index: match.index });
   }
