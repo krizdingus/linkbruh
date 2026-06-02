@@ -99,7 +99,7 @@ export async function onMessage(message) {
   // Nothing fixable resolved (e.g. only non-video tweets): note any IG failures
   // and otherwise stay quiet.
   if (successes.length === 0) {
-    for (const fail of igFails) await postSelfDeletingNote(message);
+    if (igFails.length > 0) await postSelfDeletingNote(message);
     return;
   }
 
@@ -136,7 +136,7 @@ export async function onMessage(message) {
 
   // Degraded path: reply with the fixes (don't delete), note any IG failures.
   await replyWithFixes(message, successes);
-  for (const fail of igFails) await postSelfDeletingNote(message);
+  if (igFails.length > 0) await postSelfDeletingNote(message);
 }
 
 // React with ❌ to delete the bot's fix. Only the original author can. Checks the
